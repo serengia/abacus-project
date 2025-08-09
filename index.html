@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abacus Learning Playground</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #4a5568;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .playground {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .current-value-container {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .current-value-container h4 {
+            color: #047857;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .current-value-container .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #065f46;
+        }
+
+        .abacus-container {
+            width: 100%;
+            background: linear-gradient(45deg, #8B4513, #D2691E);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .abacus {
+            background: #DEB887;
+            border: 8px solid #8B4513;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .level-indicator {
+            display: none;
+        }
+
+        .levels-grid {
+            display: none;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            position: relative;
+            width: 100%;
+        }
+
+        .rod {
+            width: calc(100% - 160px);
+            height: 4px;
+            background: linear-gradient(90deg, #8B4513, #D2691E);
+            border-radius: 2px;
+            position: relative;
+            margin: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .level-label {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #2d3748;
+            min-width: 140px;
+            text-align: left;
+        }
+
+        .bead {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: grab;
+            position: absolute;
+            top: -10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bead:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .bead:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .bead.blue {
+            background: linear-gradient(135deg, #3182ce, #2c5282);
+        }
+
+        .bead.red {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+        }
+
+        .bead.beige {
+            background: linear-gradient(135deg, #f7fafc, #e2e8f0);
+        }
+
+        .bead.green {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+        }
+
+        .bead.yellow {
+            background: linear-gradient(135deg, #d69e2e, #b7791f);
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .controls h3 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            display: none;
+        }
+
+        .instructions {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .instructions h4 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            color: #1e3a8a;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+
+        .practice-mode {
+            background: rgba(245, 101, 101, 0.1);
+            border: 2px solid #f56565;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .levels-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Interactive Abacus Playground</h1>
+            <p>Learn mathematics the traditional way! Drag beads to calculate numbers.</p>
+        </div>
+
+        <div class="playground">
+            <div class="abacus-container">
+                <div class="abacus" id="abacus">
+                    <!-- Abacus rows will be generated by JavaScript -->
+                </div>
+
+                <div class="level-indicator">
+                    <h3>LEVELS</h3>
+                    <div class="levels-grid">
+                        <div class="level-item">
+                            <span>7 →</span>
+                            <span>10⁶ = 1,000,000</span>
+                        </div>
+                        <div class="level-item">
+                            <span>6 →</span>
+                            <span>10⁵ = 100,000</span>
+                        </div>
+                        <div class="level-item">
+                            <span>5 →</span>
+                            <span>10⁴ = 10,000</span>
+                        </div>
+                        <div class="level-item">
+                            <span>4 →</span>
+                            <span>10³ = 1,000</span>
+                        </div>
+                        <div class="level-item">
+                            <span>3 →</span>
+                            <span>10² = 100</span>
+                        </div>
+                        <div class="level-item">
+                            <span>2 →</span>
+                            <span>10¹ = 10</span>
+                        </div>
+                        <div class="level-item">
+                            <span>1 →</span>
+                            <span>10⁰ = 1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="current-value-container">
+                <h4>Current Value:</h4>
+                <div class="value" id="currentValue">0</div>
+            </div>
+
+            <div class="controls">
+                <h3>🎯 Learning Controls</h3>
+
+                <div class="input-group">
+                    <label for="numberInput">Enter a number to practice:</label>
+                    <input type="number" id="numberInput" placeholder="e.g., 12345" min="0" max="9999999">
+                </div>
+
+                <button class="btn" onclick="setNumber()">Set Number</button>
+                <button class="btn" onclick="resetAbacus()">Reset Abacus</button>
+                <button class="btn" onclick="generateRandom()">Random Number</button>
+
+                <div class="instructions">
+                    <h4>📚 How to Use:</h4>
+                    <ul>
+                        <li>Drag beads left and right along the rods</li>
+                        <li>Each row represents a different place value</li>
+                        <li>Beads on the RIGHT are "active" and count toward the total</li>
+                        <li>Each bead represents 1 unit of its place value</li>
+                        <li>Practice by setting numbers and moving beads!</li>
+                    </ul>
+                </div>
+
+                <div class="practice-mode">
+                    <h4>🎮 Interactive Practice:</h4>
+                    <p>Target number: <span id="targetNumber">-</span></p>
+                    <button class="btn" onclick="checkAnswer()" id="checkBtn" style="display:none;">Check
+                        Answer</button>
+                    <div id="feedback"></div>
+                    <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                        💡 Tip: Drag beads to automatically check your answer!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class Abacus {
+            constructor() {
+                this.rows = 7;
+                this.beadsPerRow = 10;
+                this.colors = ['blue', 'red', 'beige', 'green', 'yellow', 'blue', 'red'];
+                this.beadPositions = Array(this.rows).fill().map(() => Array(this.beadsPerRow).fill(false));
+                this.targetNumber = null;
+                this.init();
+            }
+
+            init() {
+                this.createAbacus();
+                this.updateValue();
+            }
+
+            createAbacus() {
+                const abacus = document.getElementById('abacus');
+                abacus.innerHTML = '';
+
+                const levelValues = ['1,000,000', '100,000', '10,000', '1,000', '100', '10', '1'];
+                const levelPowers = ['10⁶', '10⁵', '10⁴', '10³', '10²', '10¹', '10⁰'];
+
+                for (let row = 0; row < this.rows; row++) {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'row';
+
+                    const rod = document.createElement('div');
+                    rod.className = 'rod';
+                    rod.dataset.row = row;
+
+                    // Create beads for this row
+                    for (let bead = 0; bead < this.beadsPerRow; bead++) {
+                        const beadElement = document.createElement('div');
+                        beadElement.className = `bead ${this.colors[row]}`;
+                        beadElement.dataset.row = row;
+                        beadElement.dataset.bead = bead;
+                        // Start beads on the left (inactive position) with proper spacing
+                        beadElement.style.left = `${bead * 35}px`;
+
+                        this.addDragFunctionality(beadElement);
+                        rod.appendChild(beadElement);
+                    }
+
+                    // Add level label at the end of each row
+                    const levelLabel = document.createElement('div');
+                    levelLabel.className = 'level-label';
+                    levelLabel.innerHTML = `(${levelPowers[row]} = ${levelValues[row]})`;
+
+                    rowDiv.appendChild(rod);
+                    rowDiv.appendChild(levelLabel);
+                    abacus.appendChild(rowDiv);
+                }
+            }
+
+            addDragFunctionality(bead) {
+                let isDragging = false;
+                let startX, startLeft;
+
+                const getRodWidth = () => {
+                    const rod = bead.parentElement;
+                    return rod && rod.offsetWidth ? rod.offsetWidth : 600; // fallback width
+                };
+
+                const getBeadSpacing = () => {
+                    const rodWidth = getRodWidth();
+                    return Math.min(35, (rodWidth - 60) / (this.beadsPerRow + 1)); // Ensure uniform spacing
+                };
+
+                bead.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startLeft = parseInt(bead.style.left) || 0;
+                    bead.style.zIndex = 1000;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+
+                    const rodWidth = getRodWidth();
+                    const dx = e.clientX - startX;
+                    const newLeft = Math.max(0, Math.min(rodWidth - 30, startLeft + dx));
+                    bead.style.left = `${newLeft}px`;
+                });
+
+                document.addEventListener('mouseup', (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+
+                    const rodWidth = getRodWidth();
+                    const beadSpacing = getBeadSpacing();
+                    const finalLeft = parseInt(bead.style.left) || 0;
+                    const row = parseInt(bead.dataset.row);
+                    const beadIndex = parseInt(bead.dataset.bead);
+                    const gapSize = 60; // Gap between inactive and active zones
+                    const leftZoneWidth = (rodWidth - gapSize) / 2;
+                    const rightZoneStart = leftZoneWidth + gapSize;
+
+                    // Snap to left (inactive) or right (active)
+                    if (finalLeft < leftZoneWidth) {
+                        // Left side - inactive
+                        const leftPosition = beadIndex * beadSpacing;
+                        bead.style.left = `${Math.min(leftPosition, leftZoneWidth - 30)}px`;
+                        this.beadPositions[row][beadIndex] = false;
+                    } else {
+                        // Right side - active
+                        const rightPosition = rightZoneStart + beadIndex * beadSpacing;
+                        bead.style.left = `${Math.min(rightPosition, rodWidth - 30)}px`;
+                        this.beadPositions[row][beadIndex] = true;
+                    }
+
+                    bead.style.zIndex = 'auto';
+                    this.updateValue();
+                    this.checkForNumberMatch(); // Check if user created a target number
+                });
+
+                // Touch events for mobile
+                bead.addEventListener('touchstart', (e) => {
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                    startLeft = parseInt(bead.style.left) || 0;
+                    bead.style.zIndex = 1000;
+                    e.preventDefault();
+                });
+
+                document.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+
+                    const rodWidth = getRodWidth();
+                    const dx = e.touches[0].clientX - startX;
+                    const newLeft = Math.max(0, Math.min(rodWidth - 30, startLeft + dx));
+                    bead.style.left = `${newLeft}px`;
+                    e.preventDefault();
+                });
+
+                document.addEventListener('touchend', (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+
+                    const rodWidth = getRodWidth();
+                    const beadSpacing = getBeadSpacing();
+                    const finalLeft = parseInt(bead.style.left) || 0;
+                    const row = parseInt(bead.dataset.row);
+                    const beadIndex = parseInt(bead.dataset.bead);
+                    const gapSize = 60; // Gap between inactive and active zones
+                    const leftZoneWidth = (rodWidth - gapSize) / 2;
+                    const rightZoneStart = leftZoneWidth + gapSize;
+
+                    if (finalLeft < leftZoneWidth) {
+                        // Left side - inactive
+                        const leftPosition = beadIndex * beadSpacing;
+                        bead.style.left = `${Math.min(leftPosition, leftZoneWidth - 30)}px`;
+                        this.beadPositions[row][beadIndex] = false;
+                    } else {
+                        // Right side - active
+                        const rightPosition = rightZoneStart + beadIndex * beadSpacing;
+                        bead.style.left = `${Math.min(rightPosition, rodWidth - 30)}px`;
+                        this.beadPositions[row][beadIndex] = true;
+                    }
+
+                    bead.style.zIndex = 'auto';
+                    this.updateValue();
+                    this.checkForNumberMatch(); // Check if user created a target number
+                });
+            }
+
+            updateValue() {
+                let total = 0;
+                for (let row = 0; row < this.rows; row++) {
+                    const placeValue = Math.pow(10, this.rows - 1 - row);
+                    const activeBeads = this.beadPositions[row].filter(active => active).length;
+                    total += activeBeads * placeValue;
+                }
+
+                document.getElementById('currentValue').textContent = total.toLocaleString();
+                return total;
+            }
+
+            setNumber(number) {
+                if (number > 9999999) {
+                    alert('Number too large! Maximum is 9,999,999');
+                    return;
+                }
+
+                this.reset();
+                const digits = number.toString().padStart(this.rows, '0').split('');
+
+                // Use setTimeout to ensure DOM is ready
+                setTimeout(() => {
+                    for (let row = 0; row < this.rows; row++) {
+                        const digit = parseInt(digits[row]);
+                        const rod = document.querySelector(`[data-row="${row}"]`);
+
+                        if (rod && rod.offsetWidth) {
+                            const rodWidth = rod.offsetWidth;
+                            const beadSpacing = Math.min(35, (rodWidth - 60) / (this.beadsPerRow + 1));
+                            const gapSize = 60; // Gap between inactive and active zones
+                            const leftZoneWidth = (rodWidth - gapSize) / 2;
+                            const rightZoneStart = leftZoneWidth + gapSize;
+
+                            for (let bead = 0; bead < digit && bead < this.beadsPerRow; bead++) {
+                                this.beadPositions[row][bead] = true;
+                                const beadElement = document.querySelector(`[data-row="${row}"][data-bead="${bead}"]`);
+                                if (beadElement) {
+                                    // Position active beads on the right side
+                                    const rightPosition = rightZoneStart + bead * beadSpacing;
+                                    beadElement.style.left = `${Math.min(rightPosition, rodWidth - 30)}px`;
+                                }
+                            }
+                        }
+                    }
+                    this.updateValue();
+                }, 100);
+            }
+
+            reset() {
+                this.beadPositions = Array(this.rows).fill().map(() => Array(this.beadsPerRow).fill(false));
+
+                // Use setTimeout to ensure DOM is ready
+                setTimeout(() => {
+                    for (let row = 0; row < this.rows; row++) {
+                        for (let bead = 0; bead < this.beadsPerRow; bead++) {
+                            const beadElement = document.querySelector(`[data-row="${row}"][data-bead="${bead}"]`);
+                            if (beadElement && beadElement.parentElement) {
+                                const rod = beadElement.parentElement;
+                                const rodWidth = rod.offsetWidth || 600; // fallback
+                                const beadSpacing = Math.min(35, (rodWidth - 60) / (this.beadsPerRow + 1));
+                                const gapSize = 60;
+                                const leftZoneWidth = (rodWidth - gapSize) / 2;
+
+                                // Reset beads to left (inactive) position with uniform spacing
+                                const leftPosition = bead * beadSpacing;
+                                beadElement.style.left = `${Math.min(leftPosition, leftZoneWidth - 30)}px`;
+                            }
+                        }
+                    }
+                    this.updateValue();
+                }, 50);
+            }
+
+            generateRandomNumber() {
+                const randomNumber = Math.floor(Math.random() * 10000) + 1;
+                this.targetNumber = randomNumber;
+                document.getElementById('targetNumber').textContent = randomNumber.toLocaleString();
+                document.getElementById('checkBtn').style.display = 'none'; // Hide manual check button
+                document.getElementById('feedback').innerHTML = `<p style="color: #666;">Drag beads to represent: ${randomNumber.toLocaleString()}</p>`;
+                this.reset();
+            }
+
+            checkAnswer() {
+                const currentValue = this.updateValue();
+                const feedback = document.getElementById('feedback');
+
+                if (currentValue === this.targetNumber) {
+                    feedback.innerHTML = '<p style="color: green; font-weight: bold;">🎉 Correct! Well done!</p>';
+                } else {
+                    feedback.innerHTML = `<p style="color: red; font-weight: bold;">❌ Not quite. You have ${currentValue.toLocaleString()}, target is ${this.targetNumber.toLocaleString()}</p>`;
+                }
+            }
+
+            checkForNumberMatch() {
+                if (this.targetNumber !== null) {
+                    const currentValue = this.updateValue();
+                    const feedback = document.getElementById('feedback');
+
+                    if (currentValue === this.targetNumber) {
+                        feedback.innerHTML = '<p style="color: green; font-weight: bold;">🎉 Perfect! You matched the target number!</p>';
+                        // Auto-generate new challenge after 2 seconds
+                        setTimeout(() => {
+                            this.generateRandomNumber();
+                        }, 2000);
+                    } else if (feedback.innerHTML.includes('Perfect!')) {
+                        // Clear success message if user changes beads after success
+                        feedback.innerHTML = `<p style="color: #666;">Current: ${currentValue.toLocaleString()}, Target: ${this.targetNumber.toLocaleString()}</p>`;
+                    }
+                }
+            }
+        }
+
+        // Initialize the abacus
+        const abacus = new Abacus();
+
+        // Global functions
+        function setNumber() {
+            const input = document.getElementById('numberInput');
+            const number = parseInt(input.value);
+            if (isNaN(number) || number < 0) {
+                alert('Please enter a valid positive number');
+                return;
+            }
+            abacus.setNumber(number);
+        }
+
+        function resetAbacus() {
+            abacus.reset();
+            document.getElementById('numberInput').value = '';
+            document.getElementById('targetNumber').textContent = '-';
+            document.getElementById('checkBtn').style.display = 'none';
+            document.getElementById('feedback').innerHTML = '';
+        }
+
+        function generateRandom() {
+            abacus.generateRandomNumber();
+        }
+
+        function checkAnswer() {
+            abacus.checkAnswer();
+        }
+
+        // Allow Enter key to set number
+        document.getElementById('numberInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                setNumber();
+            }
+        });
+    </script>
+</body>
+
+</html>
